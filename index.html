@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#2e7d32">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AgriHub">
+<link rel="manifest" href="manifest.json">
+<title>AgriHub</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --green:#2e7d32;--green-light:#43a047;--green-pale:#e8f5e9;--green-mid:#66bb6a;
+  --red:#e53935;--orange:#fb8c00;--blue:#1976d2;--gray:#757575;--gray-light:#f5f5f5;
+  --border:#e0e0e0;--white:#ffffff;--text:#212121;--text2:#616161;
+  --fs:16px;
+}
+html,body{height:100%;overflow:hidden;font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;font-size:var(--fs);color:var(--text);background:#fff;}
+
+/* Layout */
+#app{display:flex;flex-direction:column;height:100%;}
+.header{background:var(--green);color:#fff;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:100;}
+.header h1{font-size:1.1rem;font-weight:700;letter-spacing:.5px;}
+.header-actions{display:flex;gap:8px;}
+.icon-btn{background:none;border:none;color:#fff;padding:6px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.icon-btn:active{background:rgba(255,255,255,.2);}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative;}
+.bottom-nav{background:#fff;border-top:1px solid var(--border);display:flex;flex-shrink:0;z-index:100;}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px 6px;border:none;background:none;cursor:pointer;gap:3px;min-height:56px;}
+.nav-item svg{width:22px;height:22px;}
+.nav-item span{font-size:.65rem;color:var(--gray);}
+.nav-item.active svg{stroke:var(--green);}
+.nav-item.active span{color:var(--green);}
+.nav-item svg{stroke:var(--gray);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+/* Pages */
+.page{display:none;height:100%;flex-direction:column;}
+.page.active{display:flex;}
+
+/* FAB */
+.fab{position:fixed;bottom:72px;right:16px;width:52px;height:52px;border-radius:50%;background:var(--green);color:#fff;border:none;font-size:1.6rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;z-index:200;transition:.15s;}
+.fab:active{transform:scale(.92);}
+
+/* Cards */
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.12);margin:8px;overflow:hidden;}
+.card-header{padding:12px 16px;font-weight:600;font-size:.95rem;border-bottom:1px solid var(--border);}
+.card-body{padding:14px 16px;}
+
+/* Tags / Badges */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:600;}
+.badge-green{background:var(--green-pale);color:var(--green);}
+.badge-red{background:#ffebee;color:var(--red);}
+.badge-orange{background:#fff3e0;color:var(--orange);}
+.badge-blue{background:#e3f2fd;color:var(--blue);}
+.badge-gray{background:#f5f5f5;color:var(--gray);}
+
+/* Forms */
+.form-group{margin-bottom:14px;}
+.form-label{font-size:.82rem;color:var(--text2);margin-bottom:4px;display:block;}
+.form-control{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.95rem;color:var(--text);background:#fff;outline:none;transition:.2s;}
+.form-control:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(46,125,50,.12);}
+select.form-control{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23757575' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+
+/* Buttons */
+.btn{padding:10px 20px;border-radius:8px;border:none;font-size:.9rem;font-weight:600;cursor:pointer;transition:.15s;}
+.btn-primary{background:var(--green);color:#fff;}
+.btn-primary:active{background:var(--green-light);}
+.btn-outline{background:transparent;border:1.5px solid var(--green);color:var(--green);}
+.btn-outline:active{background:var(--green-pale);}
+.btn-sm{padding:6px 14px;font-size:.8rem;}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-block{width:100%;}
+
+/* Tabs */
+.tab-bar{display:flex;overflow-x:auto;background:#fff;border-bottom:2px solid var(--border);flex-shrink:0;scrollbar-width:none;}
+.tab-bar::-webkit-scrollbar{display:none;}
+.tab-item{padding:10px 16px;white-space:nowrap;font-size:.88rem;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;color:var(--text2);transition:.15s;}
+.tab-item.active{color:var(--green);border-bottom-color:var(--green);font-weight:600;}
+
+/* Sub nav */
+.sub-nav{display:flex;overflow-x:auto;gap:8px;padding:10px 12px;background:var(--gray-light);flex-shrink:0;scrollbar-width:none;}
+.sub-nav::-webkit-scrollbar{display:none;}
+.sub-chip{padding:5px 12px;border-radius:20px;font-size:.8rem;border:1.5px solid var(--border);background:#fff;cursor:pointer;white-space:nowrap;color:var(--text2);}
+.sub-chip.active{background:var(--green);color:#fff;border-color:var(--green);}
+
+/* Search bar */
+.search-wrap{padding:10px 12px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;}
+.search-input{width:100%;border:1.5px solid var(--border);border-radius:24px;padding:8px 16px;font-size:.92rem;outline:none;background:var(--gray-light);}
+.search-input:focus{border-color:var(--green);background:#fff;}
+
+/* ===== 農薬検索 ===== */
+#page-search .search-header{padding:16px;}
+#page-search .search-header h2{font-size:1.1rem;color:var(--green);font-weight:700;margin-bottom:12px;}
+.pesticide-card{margin:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;overflow:hidden;}
+.pesticide-card-header{padding:12px 14px;background:var(--green-pale);display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.pesticide-name{font-weight:700;font-size:.95rem;color:var(--text);flex:1;}
+.pesticide-card-body{padding:10px 14px;}
+.pesticide-row{display:flex;gap:6px;margin-bottom:6px;align-items:flex-start;font-size:.85rem;}
+.pesticide-row-label{color:var(--text2);min-width:80px;flex-shrink:0;}
+.pesticide-row-val{color:var(--text);}
+.no-results{text-align:center;padding:40px 20px;color:var(--gray);}
+.no-results svg{width:48px;height:48px;stroke:var(--border);margin-bottom:12px;}
+
+/* ===== 農業日誌 ===== */
+.diary-entry{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:12px;background:#fff;}
+.diary-entry:last-child{border-bottom:none;}
+.diary-date-col{min-width:52px;text-align:center;}
+.diary-date-num{font-size:1.3rem;font-weight:700;line-height:1;}
+.diary-date-day{font-size:.72rem;color:var(--gray);}
+.diary-date-month{font-size:.72rem;color:var(--text2);}
+.diary-content{flex:1;min-width:0;}
+.diary-work-type{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.work-icon{width:28px;height:28px;border-radius:50%;background:var(--green-pale);display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+.diary-work-name{font-weight:600;font-size:.9rem;}
+.diary-meta{font-size:.78rem;color:var(--text2);margin-bottom:4px;}
+.diary-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.diary-stat{font-size:.78rem;color:var(--text2);display:flex;align-items:center;gap:2px;}
+.harvest-warn{background:#fff3e0;color:var(--orange);font-size:.78rem;padding:4px 10px;border-radius:6px;margin-top:6px;display:inline-flex;align-items:center;gap:4px;}
+
+/* ===== 散布管理 ===== */
+.spray-card{margin:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;overflow:hidden;}
+.spray-card-top{padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;}
+.spray-name{font-weight:700;font-size:.92rem;flex:1;margin-right:8px;}
+.spray-ok{background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;}
+.spray-ng{background:#ffebee;color:#c62828;padding:3px 10px;border-radius:12px;font-size:.78rem;font-weight:700;}
+.spray-info{padding:0 14px 12px;font-size:.82rem;color:var(--text2);}
+.spray-info-row{margin-bottom:4px;display:flex;gap:6px;}
+.spray-info-label{min-width:70px;color:var(--gray);}
+.spray-counts{padding:8px 14px;background:var(--gray-light);display:flex;gap:12px;font-size:.82rem;}
+.spray-count-item{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.spray-count-val{font-weight:700;font-size:1rem;color:var(--text);}
+.spray-count-lbl{color:var(--text2);font-size:.72rem;}
+
+/* ===== 佘付地図 ===== */
+.field-map-wrap{padding:12px;}
+.field-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.field-block{border-radius:10px;border:2px solid var(--green);background:var(--green-pale);padding:14px;text-align:center;cursor:pointer;transition:.15s;}
+.field-block:active{transform:scale(.96);}
+.field-block-name{font-weight:700;font-size:.95rem;color:var(--green);margin-bottom:4px;}
+.field-block-crop{font-size:.82rem;color:var(--text2);}
+.field-block-size{font-size:.75rem;color:var(--gray);}
+.field-empty{border-style:dashed;background:#fff;color:var(--gray);}
+
+/* ===== 売上管理 ===== */
+.sales-summary{display:flex;gap:10px;padding:12px;overflow-x:auto;scrollbar-width:none;}
+.sales-summary::-webkit-scrollbar{display:none;}
+.sales-card{min-width:130px;border-radius:10px;background:#fff;border:1px solid var(--border);padding:14px;flex-shrink:0;}
+.sales-card-lbl{font-size:.75rem;color:var(--text2);margin-bottom:6px;}
+.sales-card-val{font-size:1.25rem;font-weight:700;color:var(--text);}
+.sales-card-sub{font-size:.75rem;margin-top:4px;}
+.sales-card-up{color:#e53935;}
+.sales-card-down{color:#1976d2;}
+.chart-section{margin:8px 12px;border-radius:10px;border:1px solid var(--border);background:#fff;padding:14px;}
+.chart-title{font-size:.9rem;font-weight:600;margin-bottom:10px;}
+.chart-wrap{position:relative;height:180px;}
+canvas{max-width:100%;}
+
+/* ===== その他 ===== */
+.settings-section{margin:10px 12px;}
+.settings-title{font-size:.8rem;color:var(--green);font-weight:700;padding:10px 0 6px;letter-spacing:.3px;}
+.settings-item{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+.settings-item:active{background:var(--gray-light);}
+.settings-item-left{display:flex;flex-direction:column;gap:2px;}
+.settings-item-name{font-size:.92rem;font-weight:600;}
+.settings-item-sub{font-size:.78rem;color:var(--text2);}
+.settings-arrow{color:var(--gray);}
+.font-size-btns{display:flex;gap:8px;align-items:center;}
+.font-size-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--green);background:#fff;color:var(--green);font-weight:700;cursor:pointer;font-size:.95rem;}
+.font-size-btn:active{background:var(--green);color:#fff;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:flex-end;justify-content:center;}
+.modal-overlay.hidden{display:none;}
+.modal{background:#fff;border-radius:18px 18px 0 0;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:20px 16px 32px;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+.modal-actions{display:flex;gap:10px;margin-top:20px;}
+.modal-actions .btn{flex:1;}
+
+/* Toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.8);color:#fff;padding:10px 20px;border-radius:24px;font-size:.85rem;z-index:900;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;color:var(--gray);}
+.empty-state svg{width:56px;height:56px;stroke:var(--border);margin-bottom:14px;}
+.empty-state p{font-size:.9rem;text-align:center;line-height:1.6;}
+.empty-state .btn{margin-top:16px;}
+
+/* Scroll content */
+.scroll-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+
+/* List rows */
+.list-row{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.list-row:last-child{border-bottom:none;}
+.list-row-name{font-size:.92rem;font-weight:500;}
+.list-row-sub{font-size:.78rem;color:var(--text2);margin-top:2px;}
+.list-row-right{display:flex;align-items:center;gap:8px;}
+
+/* Loader */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--gray);}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Divider */
+.divider{height:1px;background:var(--border);margin:4px 0;}
+
+/* Info banner */
+.info-banner{background:var(--green-pale);border-left:3px solid var(--green);padding:10px 14px;margin:8px 12px;border-radius:0 8px 8px 0;font-size:.83rem;color:var(--green);}
+
+/* Date header in diary */
+.diary-month-header{padding:6px 16px;background:var(--gray-light);font-size:.8rem;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <div class="header" id="main-header">
+    <h1 id="header-title">農薬検索</h1>
+    <div class="header-actions">
+      <button class="icon-btn" id="header-search-btn" onclick="toggleHeaderSearch()" title="検索">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+      <button class="icon-btn" onclick="showInfoModal()" title="情報">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- ===== PAGE: 農薬検索 ===== -->
+    <div class="page active" id="page-search">
+      <div id="search-header" class="search-header">
+        <h2># 農薬検索</h2>
+        <input class="search-input" type="search" id="pesticide-search-input" placeholder="作物名を入力してください" oninput="searchPesticides(this.value)">
+      </div>
+      <div class="scroll-content" id="pesticide-results">
+        <div class="info-banner">作物名（例：トマト、キャベツ、イネゴ）で農薬を検索できます</div>
+        <div id="pesticide-list"></div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: 農業日誌 ===== -->
+    <div class="page" id="page-diary">
+      <div class="tab-bar" id="diary-field-tabs"></div>
+      <div class="sub-nav" id="diary-sub-nav">
+        <span class="sub-chip active" onclick="setDiaryView('data',this)">データ</span>
+        <span class="sub-chip" onclick="setDiaryView('memo',this)">メモ</span>
+        <span class="sub-chip" onclick="setDiaryView('search',this)">検索</span>
+        <span class="sub-chip" onclick="setDiaryView('calendar',this)">カレンダー</span>
+        <span class="sub-chip" onclick="setDiaryView('delete',this)">一括削除</span>
+        <span class="sub-chip" onclick="setDiaryView('other',this)">その他</span>
+      </div>
+      <div class="scroll-content" id="diary-content"></div>
+      <button class="fab" onclick="openDiaryModal()">＋</button>
+    </div>
+
+    <!-- ===== PAGE: 作付地図 ===== -->
+    <div class="page" id="page-map">
+      <div class="scroll-content">
+        <div class="field-map-wrap">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <h3 style="font-size:.95rem;font-weight:700;">圃場マップ</h3>
+            <button class="btn btn-primary btn-sm" onclick="openFieldModal()">＋ 圃場追加</button>
+          </div>
+          <div class="field-grid" id="field-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== PAGE: 売上管理 ===== -->
+    <div class="page" id="page-sales">
+      <div class="sub-nav" style="border-bottom:1px solid var(--border);">
+        <span class="sub-chip active" onclick="setSalesPeriod('day',this)">日間</span>
+        <span class="sub-chip" onclick="setSalesPeriod('week',this)">週間</span>
+        <span class="sub-chip" onclick="setSalesPeriod('month',this)">月間</span>
+        <span class="sub-chip" onclick="setSalesPeriod('year',this)">年間</span>
+      </div>
+      <div class="scroll-content" id="sales-content"></div>
+      <button class="fab" onclick="openSalesModal()">＋</button>
+    </div>
+
+    <!-- ===== PAGE: その他 ===== -->
+    <div class="page" id="page-other">
+      <div class="scroll-content" id="other-content">
+        <div class="settings-section">
+          <div class="settings-title">表示設定</div>
+          <div class="settings-item">
+            <div class="settings-item-left">
+              <div class="settings-item-name">文字の大きさ</div>
+              <div class="settings-item-sub" id="font-size-label">普通 (16px)</div>
+            </div>
+            <div class="font-size-btns">
+              <button class="font-size-btn" onclick="changeFontSize(-1)">A-</button>
+              <button class="font-size-btn" onclick="changeFontSize(1)">A+</button>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">農業管理</div>
+          <div class="settings-item" onclick="showCropList()">
+            <div class="settings-item-left">
+              <div class="settings-item-name">作付け一覧</div>
+              <div class="settings-item-sub" id="crop-list-sub">まずは作付けを登録!</div>
+            </div>
+            <svg class="settings-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="settings-item" onclick="showFieldTemplates()">
+            <div class="settings-item-left">
+              <div class="settings-item-name">圃場テンプレート</div>
+              <div class="settings-item-sub">大規模農園向け</div>
+            </div>
+            <svg class="settings-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="settings-item" onclick="showMyPesticides()">
+            <div class="settings-item-left">
+              <div class="settings-item-name">持っている農薬</div>
+              <div class="settings-item-sub">オススメ No.1</div>
+            </div>
+            <svg class="settings-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">データ管理</div>
+          <div class="settings-item" onclick="exportCSV()">
+            <div class="settings-item-left">
+              <div class="settings-item-name">CSVエクスポート</div>
+              <div class="settings-item-sub">農業日誌データを書き出す</div>
+            </div>
+            <svg class="settings-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="settings-item" onclick="showSprayMgmt()">
+            <div class="settings-item-left">
+              <div class="settings-item-name">散布管理</div>
+              <div class="settings-item-sub">農薬使用回数・収穫前日数</div>
+            </div>
+            <svg class="settings-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-title">アプリ情報</div>
+          <div class="settings-item" onclick="showAbout()">
+            <div class="settings-item-left">
+              <div class="settings-item-name">AgriHubにつて</div>
+              <div class="settings-item-sub">バージョン 1.0.0</div>
+            </div>
+            <svg class="settings-arrow" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <button class="nav-item active" id="nav-search" onclick="switchPage('search')">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span>農薬検索</span>
+    </button>
+    <button class="nav-item" id="nav-diary" onclick="switchPage('diary')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span>農業日誌</span>
+    </button>
+    <button class="nav-item" id="nav-map" onclick="switchPage('map')">
+      <svg viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      <span>作付地図</span>
+    </button>
+    <button class="nav-item" id="nav-sales" onclick="switchPage('sales')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <span>売上管理</span>
+    </button>
+    <button class="nav-item" id="nav-other" onclick="switchPage('other')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      <span>その他</span>
+    </button>
+  </div>
+</div><!-- /app -->
+
+<!-- ===== MODALS ===== -->
+<!-- Diary entry modal -->
+<div class="modal-overlay hidden" id="diary-modal-overlay">
+  <div class="modal" id="diary-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="diary-modal-title">農業日誌を記録</div>
+    <div class="form-group">
+      <label class="form-label">日付</label>
+      <input type="date" class="form-control" id="diary-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">圃場</label>
+      <select class="form-control" id="diary-field">
+        <option value="">圃場を選択</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">作業種別</label>
+      <select class="form-control" id="diary-work-type">
+        <option value="散布">農薬散布</option>
+        <option value="施肥">施肥</option>
+        <option value="収穫">収穫</option>
+        <option value="定植">定植</option>
+        <option value="耕耘">耕耘</option>
+        <option value="除草">除草</option>
+        <option value="灌水">灌水</option>
+        <option value="その他">その他</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">作業名</label>
+      <input type="text" class="form-control" id="diary-work-name" placeholder="例：ダコニール散布">
+    </div>
+    <div class="form-group">
+      <label class="form-label">作業者</label>
+      <input type="text" class="form-control" id="diary-worker" placeholder="例：田中太郎">
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">作業時間 (h)</label>
+        <input type="number" class="form-control" id="diary-hours" placeholder="2.5" step="0.5" min="0">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">気温 (°C)</label>
+        <input type="number" class="form-control" id="diary-temp" placeholder="22">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">降水量 (mm)</label>
+        <input type="number" class="form-control" id="diary-rain" placeholder="0" step="0.5" min="0">
+      </div>
+      <div class="form-group" style="flex:1;">
+        <label class="form-label">収穫制限日数</label>
+        <input type="number" class="form-control" id="diary-harvest-days" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <textarea class="form-control" id="diary-memo" rows="3" placeholder="メモを入力..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeDiaryModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveDiaryEntry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Field modal -->
+<div class="modal-overlay hidden" id="field-modal-overlay">
+  <div class="modal" id="field-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">圃場を追加</div>
+    <div class="form-group">
+      <label class="form-label">圃場名</label>
+      <input type="text" class="form-control" id="field-name" placeholder="例：第1圃場">
+    </div>
+    <div class="form-group">
+      <label class="form-label">作物名</label>
+      <input type="text" class="form-control" id="field-crop" placeholder="例：トマト">
+    </div>
+    <div class="form-label">面積 (a/アール)</label>
+      <input type="number" class="form-control" id="field-size" placeholder="10" step="0.5" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">メモ</label>
+      <input type="text" class="form-control" id="field-memo" placeholder="備考など">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeFieldModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveField()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sales modal -->
+<div class="modal-overlay hidden" id="sales-modal-overlay">
+  <div class="modal" id="sales-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">売上を記録</div>
+    <div class="form-group">
+      <label class="form-label">日付</label>
+      <input type="date" class="form-control" id="sales-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">作物・品目</label>
+      <input type="text" class="form-control" id="sales-item" placeholder="例：トマト">
+    </div>
+    <div class="form-group">
+      <label class="form-label">売上金額 (円)</label>
+      <input type="number" class="form-control" id="sales-amount" placeholder="50000" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">出荷量 (kg)</label>
+      <input type="number" class="form-control" id="sales-qty" placeholder="100" step="0.1" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">出荷先</label>
+      <input type="text" class="form-control" id="sales-dest" placeholder="例：農協、直売所">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeSalesModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveSales()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Info modal -->
+<div class="modal-overlay hidden" id="info-modal-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">AgriHub について</div>
+    <p style="font-size:.9rem;line-height:1.7;color:var(--text2);">AgriHubは農業経営を支援するスマートフォン向けPWAアプリです。<br>農薬検索、農業日誌、圃場管理、売上管理をオフラインでご利用いただけます。</p>
+    <div style="margin-top:16px;padding:12px;background:var(--green-pale);border-radius:8px;font-size:.82rem;color:var(--green);">
+      <strong>Version 1.0.0</strong><br>
+      データはすべてお使いのデバイス内に保存されます。
+    </div>
+    <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="closeInfoModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+<script>
+// =============================================
+// PESTICIDE DATABASE (日本農薬データ)
+// =============================================
+const PESTICIDE_DB = [
+  // 殺虫剤
+  {name:"アドマイヤー水和剤",type:"殺虫剤",target:"アブラムシ類、コナジラミ類、アザミウマ類",crops:["トマト","ナス","キュウリ","ピーマン","キャベツ","イチゴ","ブドウ"],method:"希釈散布 2000倍",preharvest:3,maxUse:2,color:"red"},
+  {name:"スミチオン乳剤",type:"殺虫剤",target:"アオムシ、コナガ、アブラムシ類、ハダニ類",crops:["キャベツ","ブロッコリー","トマト","ナス","リンゴ","モモ"],method:"希釈散布 1000倍",preharvest:7,maxUse:3,color:"red"},
+  {name:"モスピラン水溶剤",type:"殺虫剤",target:"アブラムシ類、コナジラミ類、コナカイガラムシ",crops:["トマト","ナス","ピーマン","キュウリ","イチゴ","リンゴ","ナシ"],method:"希釈散布 2000倍",preharvest:3,maxUse:2,color:"red"},
+  {name:"オルトラン水和剤",type:"殺虫剤",target:"アブラムシ類、コナジラミ類",crops:["キャベツ","ハクサイ","ホウレンソウ","トマト","ナス"],method:"希釈散布 1000倍",preharvest:14,maxUse:4,color:"red"},
+  {name:"マラソン乳剤",type:"殺虫剤",target:"アブラムシ類、アザミウマ類、ダニ類",crops:["トマト","キュウリ","ナス","ピーマン","キャベツ","リンゴ"],method:"希釈散布 1000倍",preharvest:7,maxUse:3,color:"red"},
+  {name:"アファーム乳剤",type:"殺虫剤",target:"ハスモンヨトウ、コナガ、アオムシ、ヨトウムシ",crops:["トマト","ナス","ピーマン","キャベツ","ブロッコリー","レタス"],method:"希釈散布 2000倍",preharvest:1,maxUse:3,color:"red"},
+  {name:"プレバソンフロアブル",type:"殺虫剤",target:"ヨトウムシ類、アオムシ、コナガ",crops:["キャベツ","ブロッコリー","レタス","トマト","ピーマン"],method:"希釈散布 2000倍",preharvest:1,maxUse:3,color:"red"},
+  {name:"ダントツ水溶剤",type:"殺虫剤",target:"アブラムシ類、コナジラミ類、アザミウマ類",crops:["トマト","ナス","キュウリ","イチゴ","ピーマン","カボチャ"],method:"希釈散布 2000倍",preharvest:3,maxUse:2,color:"red"},
+  // 殺菌剤
+  {name:"ダコニール1000",type:"殺菌剤",target:"葉かび病、灰色かび病、うどんこ病、疫病",crops:["トマト","ナス","キュウリ","ピーマン","イチゴ","メロン","スイカ"],method:"希釈散布 1000倍",preharvest:14,maxUse:4,color:"blue"},
+  {name:"トップジンM水和剤",type:"殺菌剤",target:"灰色かび病、うどんこ病、炭疽病",crops:["トマト","イチゴ","ブドウ","リンゴ","モモ","ナシ"],method:"希釈散布 1500倍",preharvest:7,maxUse:3,color:"blue"},
+  {name:"ベンレート水和剤",type:"殺菌剤",target:"灰色かび病、菌核病、黒星病",crops:["キュウリ","トマト","ナス","イチゴ","リンゴ","ブドウ"],method:"希釈散布 2000倍",preharvest:14,maxUse:3,color:"blue"},
+  {name:"オーソサイド水和剤",type:"殺菌剤",target:"疫病、晩腐病、黒星病、輪紋病",crops:["トマト","ジャガイモ","リンゴ","ナシ","モモ"],method:"希釈散布 800倍",preharvest:14,maxUse:4,color:"blue"},
+  {name:"アミスター20フロアブル",type:"殺菌剤",target:"うどんこ病、葉枯病、さび病",crops:["トマト","キュウリ","メロン","スイカ","ブドウ","イチゴ"],method:"希釈散布 2000倍",preharvest:3,maxUse:3,color:"blue"},
+  {name:"ランマンフロアブル",type:"殺菌剤",target:"疫病、べと病、黒斑病",crops:["トマト","ジャガイモ","タマネギ","キュウリ","メロン"],method:"希釈散布 2000倍",preharvest:1,maxUse:3,color:"blue"},
+  {name:"プロポーズ顆粒水和剤",type:"殺菌剤",target:"炭疽病、うどんこ病",crops:["イチゴ","トマト","キュウリ","ブドウ"],method:"希釈散布 2000倍",preharvest:0,maxUse:3,color:"blue"},
+  // 除草剤
+  {name:"ラウンドアップマックスロード",type:"除草剤",target:"一年生・多年生雑草",crops:["水稲","麦","果樹","野菜"],method:"原液散布または希釈",preharvest:0,maxUse:2,color:"orange"},
+  {name:"クサノン液剤",type:"除草剤",target:"スギナ、ドクダミ、一年生雑草",crops:["果樹","草地","畑地"],method:"希釈散布 100倍",preharvest:0,maxUse:2,color:"orange"},
+  {name:"バスタ液剤",type:"除草剤",target:"一年生・多年生雑草",crops:["水稲","麦","大豆","果樹"],method:"希釈散布 100倍",preharvest:0,maxUse:2,color:"orange"},
+  // 殺虫殺菌剤
+  {name:"ベルクートフロアブル",type:"殺虫殺菌剤",target:"うどんこ病、灰色かび病＋アブラムシ",crops:["トマト","ナス","イチゴ","キュウリ","ピーマン"],method:"希釈散布 1500倍",preharvest:3,maxUse:3,color:"purple"},
+  // 植物成長調整剤
+  {name:"トマトトーン",type:"植物成長調整剤",target:"着果促進、奇形果防止",crops:["トマト","ナス"],method:"50倍液を花房に散布",preharvest:0,maxUse:999,color:"green"},
+  {name:"ジベレリン乳剤",type:"植物成長調整剤",target:"種なし果実生産、着果促進",crops:["ブドウ","ナシ","モモ"],method:"規定希釈で浸漬または散布",preharvest:0,maxUse:999,color:"green"},
+  // 追加
+  {name:"コロマイト乳剤",type:"殺ダニ剤",target:"ハダニ類",crops:["トマト","ナス","キュウリ","イチゴ","リンゴ"],method:"希釈散布 1000倍",preharvest:1,maxUse:2,color:"red"},
+  {name:"ニッソラン水和剤",type:"殺ダニ剤",target:"ハダニ類（卵・幼虫・若虫）",crops:["トマト","ナス","キュウリ","イチゴ","リンゴ","ブドウ"],method:"希釈散布 2000倍",preharvest:3,maxUse:2,color:"red"},
+  {name:"カスミン液剤",type:"殺菌剤",target:"いもち病、白葉枯病",crops:["水稲","小麦"],method:"希釈散布 1000倍",preharvest:21,maxUse:3,color:"blue"},
+  {name:"フジワン乳剤",type:"殺菌剤",target:"うどんこ病",crops:["キュウリ","トマト","イチゴ","メロン"],method:"希釈散布 3000倍",preharvest:0,maxUse:5,color:"blue"},
+  {name:"スコア顆粒水和剤",type:"殺菌剤",target:"黒星病、さび病、炭疽病",crops:["リンゴ","ナシ","モモ","ブドウ","ウメ"],method:"希釈散布 2000倍",preharvest:14,maxUse:3,color:"blue"},
+  {name:"ホライズンドライフロアブル",type:"殺菌剤",target:"疫病、べ病",crops:["トマト","ジャガイモ","キュウリ","タマネギ"],method:"希釈散布 1000倍",preharvest:3,maxUse:3,color:"blue"},
+];
+
+// =============================================
+// DATABASE (IndexedDB)
+// =============================================
+let db;
+const DB_NAME='agrihub_v1',DB_VER=1;
+const STORES={diary:'diary',fields:'fields',sales:'sales',spray:'spray'};
+
+function initDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('diary'))d.createObjectStore('diary',{keyPath:'id',autoIncrement:true}).createIndex('date','date',{unique:false});
+      if(!d.objectStoreNames.contains('fields'))d.createObjectStore('fields',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('sales'))d.createObjectStore('sales',{keyPath:'id',autoIncrement:true}).createIndex('date','date',{unique:false});
+      if(!d.objectStoreNames.contains('spray'))d.createObjectStore('spray',{keyPath:'id',autoIncrement:true});
+    };
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=e=>rej(e);
+  });
+}
+
+function dbGet(store){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readonly');
+    const req=tx.objectStore(store).getAll();
+    req.onsuccess=()=>res(req.result);
+    req.onerror=rej;
+  });
+}
+function dbAdd(store,data){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readwrite');
+    const req=tx.objectStore(store).add(data);
+    req.onsuccess=()=>res(req.result);
+    req.onerror=rej;
+  });
+}
+function dbDel(store,id){
+  return new Promise((res,rej)=>{
+    const tx=db.transaction(store,'readwrite');
+    const req=tx.objectStore(store).delete(id);
+    req.onsuccess=()=>res();
+    req.onerror=rej;
+  });
+}
+
+// =============================================
+// STATE
+// =============================================
+let currentPage='search';
+let diaryView='data';
+let salesPeriod='month';
+let currentDiaryField=null;
+let salesChart=null;
+let diaryEntries=[];
+let fields=[];
+let salesData=[];
+
+// =============================================
+// PAGE NAVIGATION
+// =============================================
+const PAGE_TITLES={search:'農薬検索',diary:'農業日誌',map:'作付地図',sales:'売上管理',other:'その他'};
+function switchPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.getElementById('nav-'+page).classList.add('active');
+  document.getElementById('header-title').textContent=PAGE_TITLES[page];
+  currentPage=page;
+  if(page==='diary'){renderDiaryPage();}
+  if(page==='map'){renderFieldMap();}
+  if(page==='sales'){renderSalesPage();}
+}
+
+// =============================================
+// 農薬検索
+// =============================================
+function searchPesticides(q){
+  q=q.trim().toLowerCase();
+  const list=document.getElementById('pesticide-list');
+  if(!q){list.innerHTML='';return;}
+  const results=PESTICIDE_DB.filter(p=>
+    p.crops.some(c=>c.includes(q)||q.includes(c))||
+    p.name.toLowerCase().includes(q)||
+    p.target.toLowerCase().includes(q)||
+    p.type.includes(q)
+  );
+  if(!results.length){
+    list.innerHTML<`<div class="no-results"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>「${q}」に該当する農薬が見つかりませんでした</p></div>`;
+    return;
+  }
+  const typeColor={殺虫剤:'badge-red',殺菌剤:'badge-blue',除草剤:'badge-orange',殺ダニ剤:'badge-red',殺虫殺菌剤:'badge-orange',植物成長調整剤:'badge-green'};
+  list.innerHTML=results.map(p=>`
+    <div class="pesticide-card">
+      <div class="pesticide-card-header">
+        <div class="pesticide-name">${p.name}</div>
+        <span class="badge ${typeColor[p.type]||'badge-gray'}">${p.type}</span>
+      </div>
+      <div class="pesticide-card-body">
+        <div class="pesticide-row"><span class="pesticide-row-label">適用病害虫</span><span class="pesticide-row-val">${p.target}</span></div>
+        <div class="pesticide-row"><span class="pesticide-row-label">使用方法</span><span class="pesticide-row-val">${p.method}</span></div>
+        <div class="pesticide-row"><span class="pesticide-row-label">収穫前日数</span><span class="pesticide-row-val">${p.preharvest===0?'制限なし':p.preharvest+'日前まで'}</span></div>
+        <div class="pesticide-row"><span class="pesticide-row-label">最大使用回数</span><span class="pesticide-row-val">${p.maxUse>=999?'制限なし':p.maxUse+'回'}</span></div>
+        <div class="pesticide-row"><span class="pesticide-row-label">適用作物</span><span class="pesticide-row-val">${p.crops.join('、')}</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleHeaderSearch(){
+  const page=document.getElementById('page-search');
+  if(currentPage!=='search'){switchPage('search');return;}
+  const inp=document.getElementById('pesticide-search-input');
+  inp.focus();
+}
+
+// =============================================
+// 農業日誌
+// =============================================
+const WORK_ICONS={散布:'🌿',施肥:'🌱',収穫:'🌾',定植:'🌿',耕耘:'🚜',除草:'✂️',灌水:'💧',その他:'📋'};
+
+async function renderDiaryPage(){
+  diaryEntries=await dbGet('diary');
+  fields=await dbGet('fields');
+  renderDiaryTabs();
+  renderDiaryEntries();
+  populateDiaryFieldSelect();
+}
+
+function renderDiaryTabs(){
+  const bar=document.getElementById('diary-field-tabs');
+  const allTab=`<div class="tab-item ${!currentDiaryField?'active':''}" onclick="setDiaryField(null,this)">すぽて</div>`;
+  const fieldTabs=fields.map(f=>`<div class="tab-item ${currentDiaryField===f.id?'active':''}" onclick="setDiaryField(${f.id},this)">${f.name}</div>`).join('');
+  bar.innerHTML=allTab+fieldTabs;
+}
+
+function setDiaryField(id,el){
+  currentDiaryField=id;
+  document.querySelectorAll('#diary-field-tabs .tab-item').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderDiaryEntries();
+}
+
+function setDiaryView(view,el){
+  diaryView=view;
+  document.querySelectorAll('#diary-sub-nav .sub-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderDiaryEntries();
+}
+
+function renderDiaryEntries(){
+  const container=document.getElementById('diary-content');
+  let entries=diaryEntries;
+  if(currentDiaryField)entries=entries.filter(e=>e.fieldId===currentDiaryField);
+
+  if(diaryView==='memo')entries=entries.filter(e=>e.memo&&e.memo.trim());
+  if(diaryView==='search'){
+    container.innerHTML=`<div style="padding:12px;"><input class="search-input" type="search" placeholder="作業名・メモで検索..." oninput="searchDiaryEntries(this.value)"><div id="diary-search-results" style="margin-top:8px;"></div></div>`;
+    return;
+  }
+  if(diaryView==='calendar'){renderDiaryCalendar(container);return;}
+  if(diaryView==='delete'){renderDiaryDelete(container,entries);return;}
+
+  if(!entries.length){
+    container.innerHTML=`<div class="empty-state"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>まだ記録がありません<br>＋ボタンから追加してください</p></div>`;
+    return;
+  }
+
+  entries.sort((a,b)=>b.date.localeCompare(a.date));
+  // cumulative hours per field
+  const cumHours={};
+  const byDate={};
+  entries.forEach(e=>{
+    if(!byDate[e.date])byDate[e.date]=[];
+    byDate[e.date].push(e);
+  });
+
+  let html='';
+  let lastMonth='';
+  entries.forEach(e=>{
+    const d=new Date(e.date);
+    const monthKey=`${d.getFullYear()}年${d.getMonth()+1}月`;
+    if(monthKey!==lastMonth){html+=`<div class="diary-month-header">${monthKey}</div>`;lastMonth=monthKey;}
+    const days=['日','月','火','水','木','金','土'];
+    const dayStr=days[d.getDay()];
+    const fieldObj=fields.find(f=>f.id===e.fieldId);
+    const fieldName=fieldObj�fieldObj.name:'未設定';
+    cumHours[e.fieldId]=(cumHours[e.fieldId]||0)+(parseFloat(e.hours)||0);
+    const cum=cumHours[e.fieldId].toFixed(1);
+    html+=`<div class="diary-entry">
+      <div class="diary-date-col">
+        <div class="diary-date-month">${d.getMonth()+1}月</div>
+        <div class="diary-date-num">${d.getDate()}</div>
+        <div class="diary-date-day">(${dayStr})</div>
+      </div>
+      <div class="diary-content">
+        <div class="diary-work-type">
+          <div class="work-icon">${WORK_ICONS[e.workType]||'📋'}</div>
+          <div class="diary-work-name">${e.workName||e.workType}</div>
+        </div>
+        <div class="diary-meta">📍${fieldName}｜👤${e.worker||'未設定'}</div>
+        <div class="diary-stats">
+          ${e.hours?`<span class="diary-stat">⊙ ${cum}h</span>`:''}
+          ${e.temp?`<span class="diary-stat">🌡️ ${e.temp}°C</span>`:''}
+          ${e.rain?`<span class="diary-stat">🌧️ ${e.rain}mm</span>`:''}
+        </div>
+        ${e.harvestDays>0?`<div class="harvest-warn">⚠️ ${e.harvestDays}日後まで収穫できません</div>`:''}
+        ${e.memo?`<div style="font-size:.8rem;color:var(--text2);margin-top:4px;">${e.memo}</div>`:''}
+      </div>
+      <button onclick="delDiary(${e.id})" style="background:none;border:none;color:var(--gray);cursor:pointer;padding:4px;align-self:flex-start;flex-shrink:0;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </button>
+    </div>`;
+  });
+  container.innerHTML=html;
+}
+
+function searchDiaryEntries(q){
+  q=q.toLowerCase();
+  const results=diaryEntries.filter(e=>
+    (e.workName||'').toLowerCase().includes(q)||
+    (e.memo||'').toLowerCase().includes(q)||
+    (e.worker||'').toLowerCase().includes(q)
+  );
+  const div=document.getElementById('diary-search-results');
+  if(!div)return;
+  if(!q){div.innerHTML='';return;}
+  if(!results.length){div.innerHTML='<div class="no-results"><p>見つかりませんでした</p></div>';return;}
+  const fieldMap=Object.fromEntries(fields.map(f=>[f.id,f.name]));
+  div.innerHTML=results.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
+    <div class="list-row">
+      <div>
+        <div class="list-row-name">${e.workName||e.workType}</div>
+        <div class="list-row-sub">${e.date} ｜ ${fieldMap[e.fieldId]||'未設定'}</div>
+      </div>
+      <button onclick="delDiary(${e.id})" style="background:none;border:none;color:var(--gray);cursor:pointer;">削除</button>
+    </div>
+  `).join('');
+}
+
+function renderDiaryCalendar(container){
+  const now=new Date();
+  const y=now.getFullYear(),m=now.getMonth();
+  const first=new Date(y,m,1).getDay();
+  const days=new Date(y,m+1,0).getDate();
+  const months=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const entriesByDate={};
+  diaryEntries.forEach(e=>{if(entriesByDate[e.date])entriesByDate[e.date]++;else entriesByDate[e.date]=1;});
+  let cal=`<div style="padding:12px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><span style="font-weight:700;">${y}ۺT ${months[m]}</span></div>
+  <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+  <tr>${['日','月','火','水','木','金','土'].map((d,i)=>`<th style="text-align:center;padding:6px 0;color:${i===0?'#e53935':i===6?'#1976d2':'var(--text2)'};">${d}</th>`).join('')}</tr><tr>`;
+  for(let i=0;i<first;i++)cal+=`<td></td>`;
+  for(let d=1;d<=days;d++){
+    const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasEntry=entriesByDate[dateStr];
+    const isToday=d===now.getDate();
+    cal+=`<td style="text-align:center;padding:6px 2px;"><div style="width:30px;height:30px;border-radius:50%;margin:auto;display:flex;align-items:center;justify-content:center;background:${isToday?'var(--green)':hasEntry?'var(--green-pale)':'transparent'};color:${isToday?'#fff':hasEntry?'var(--green)':'inherit'};font-weight:${isToday||hasEntry?'700':'400'};font-size:.88rem;">${d}${hasEntry?'<span style="position:absolute;width:5px;height:5px;background:var(--green);border-radius:50%;bottom:2px;left:50%;transform:translateX(-50%);"></span>':''}</div></td>`;
+    if((first+d)%7===0&&d<days)cal+=`</tr><tr>`;
+  }
+  cal+=`</tr></table></div>`;
+  container.innerHTML=cal;
+}
+
+function renderDiaryDelete(container,entries){
+  if(!entries.length){container.innerHTML='<div class="empty-state"><p>削除できる記録がありません</p></div>';return;}
+  container.innerHTML<`<div style="padding:12px;">
+    <div class="info-banner" style="margin:0 0 10px;">削除したい記録の右の「削除」ボタンをタップしてください</div>
+    ${entries.sort((a,b)=>b.date.localeCompare(a.date)).map(e=>`
+      <div class="list-row" style="background:#fff;border-radius:8px;margin-bottom:6px;border:1px solid var(--border);">
+        <div>
+          <div class="list-row-name">${e.workName||e.workType}</div>
+          <div class="list-row-sub">${e.date}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="delDiary(${e.id})">削除</button>
+      </div>`).join('')}
+    <div style="margin-top:12px;">
+      <button class="btn btn-danger btn-block" onclick="delAllDiary()">すべて削除</button>
+    </div>
+  </div>`;
+}
+
+async function delDiary(id){
+  await dbDel('diary',id);
+  diaryEntries=await dbGet('diary');
+  renderDiaryEntries();
+  showToast('削除しました');
+}
+
+async function delAllDiary(){
+  if(!confirm('すぽての農業日誌を削除しますか？'))return;
+  for(const e of diaryEntries)await dbDel('diary',e.id);
+  diaryEntries=[];
+  renderDiaryEntries();
+  showToast('すぽて削除しました');
+}
+
+function populateDiaryFieldSelect(){
+  const sel=document.getElementById('diary-field');
+  sel.innerHTML='<option value="">圃場を選択</option>'+fields.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+}
+
+function openDiaryModal(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('diary-date').value=today;
+  document.getElementById('diary-work-name').value='';
+  document.getElementById('diary-worker').value='';
+  document.getElementById('diary-hours').value='';
+  document.getElementById('diary-temp').value='';
+  document.getElementById('diary-rain').value='';
+  document.getElementById('diary-harvest-days').value='';
+  document.getElementById('diary-memo').value='';
+  document.getElementById('diary-modal-overlay').classList.remove('hidden');
+}
+function closeDiaryModal(){document.getElementById('diary-modal-overlay').classList.add('hidden');}
+
+async function saveDiaryEntry(){
+  const data={
+    date:document.getElementById('diary-date').value||new Date().toISOString().slice(0,10),
+    fieldId:parseInt(document.getElementById('diary-field').value)||null,
+    workType:document.getElementById('diary-work-type').value,
+    workName:document.getElementById('diary-work-name').value,
+    worker:document.getElementById('diary-worker').value,
+    hours:document.getElementById('diary-hours').value,
+    temp:document.getElementById('diary-temp').value,
+    rain:document.getElementById('diary-rain').value,
+    harvestDays:parseInt(document.getElementById('diary-harvest-days').value)||0,
+    memo:document.getElementById('diary-memo').value,
+    createdAt:new Date().toISOString()
+  };
+  if(!data.workName&&!data.workType){showToast('作業種別を選択してください');return;}
+  await dbAdd('diary',data);
+  closeDiaryModal();
+  diaryEntries=await dbGet('diary');
+  renderDiaryEntries();
+  showToast('記録しました');
+}
+
+// =============================================
+// 圃場マップ
+// =============================================
+async function renderFieldMap(){
+  fields=await dbGet('fields');
+  const grid=document.getElementById('field-grid');
+  if(!fields.length){
+    grid.innerHTML=`<div class="field-block field-empty" style="grid-column:span 2;min-height:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;" onclick="openFieldModal()">
+      <span style="font-size:2rem;">＋</span>
+      <span style="font-size:.85rem;">圃場を追加してください</span>
+    </div>`;
+    return;
+  }
+  grid.innerHTML=fields.map(f=>`
+    <div class="field-block" onclick="showFieldDetail(${f.id})">
+      <div class="field-block-name">${f.name}</div>
+      <div class="field-block-crop">${f.crop||'作物未設定'}</div>
+      <div class="field-block-size">${f.size?f.size+'a':''}</div>
+    </div>
+  `).join('')+`<div class="field-block field-empty" onclick="openFieldModal()" style="display:flex;align-items:center;justify-content:center;font-size:1.5rem;min-height:80px;">＋</div>`;
+}
+
+function showFieldDetail(id){
+  const f=fields.find(x=>x.id===id);
+  if(!f)return;
+  if(confirm(`${f.name}を削除しますか？`)){
+    dbDel('fields',id).then(()=>{renderFieldMap();showToast('削除しました');});
+  }
+}
+
+function openFieldModal(){document.getElementById('field-modal-overlay').classList.remove('hidden');}
+function closeFieldModal(){document.getElementById('field-modal-overlay').classList.add('hidden');}
+
+async function saveField(){
+  const name=document.getElementById('field-name').value.trim();
+  if(!name){showToast('圃場名を入力してください');return;}
+  await dbAdd('fields',{
+    name,crop:document.getElementById('field-crop').value,
+    size:document.getElementById('field-size').value,
+    memo:document.getElementById('field-memo').value,
+    createdAt:new Date().toISOString()
+  });
+  document.getElementById('field-name').value='';
+  document.getElementById('field-crop').value='';
+  document.getElementById('field-size').value='';
+  document.getElementById('field-memo').value='';
+  closeFieldModal();
+  renderFieldMap();
+  // update diary field select
+  fields=await dbGet('fields');
+  populateDiaryFieldSelect();
+  showToast('圃場を追加しました');
+}
+
+// =============================================
+// 売上管理
+// =============================================
+async function renderSalesPage(){
+  salesData=await dbGet('sales');
+  const container=document.getElementById('sales-content');
+  const now=new Date();
+  let filtered=salesData;
+  let periodLabel='';
+  if(salesPeriod==='day'){
+    const today=now.toISOString().slice(0,10);
+    filtered=salesData.filter(s=>s.date===today);
+    periodLabel=today;
+  }else if(salesPeriod==='week'){
+    const d=new Date(now);d.setDate(d.getDate()-6);
+    filtered=salesData.filter(s=>s.date>=d.toISOString().slice(0,10));
+    periodLabel='過去7日間';
+  }else if(salesPeriod==='month'){
+    const ym=now.toISOString().slice(0,7);
+    filtered=salesData.filter(s=>s.date.startsWith(ym));
+    periodLabel=`${now.getFullYear()}年${now.getMonth()+1}月`;
+  }else{
+    const y=now.getFullYear().toString();
+    filtered=salesData.filter(s=>s.date.startsWith(y));
+    periodLabel=`${now.getFullYear()}ۺT`;
+  }
+
+  const total=filtered.reduce((s,x)=>s+(parseInt(x.amount)||0),0);
+  const prevYear=new Date(now);prevYear.setFullYear(prevYear.getFullYear()-1);
+  const prevPeriod=salesData.filter(s=>{
+    if(salesPeriod==='month'){const ym=`${prevYear.getFullYear()}-${String(prevYear.getMonth()+1).padStart(2,'0')}`;return s.date.startsWith(ym);}
+    if(salesPeriod==='year'){return s.date.startsWith(prevYear.getFullYear().toString());}
+    return false;
+  });
+  const prevTotal=prevPeriod.reduce((s,x)=>s+(parseInt(x.amount)||0),0);
+  const ratio=prevTotal>0?((total/prevTotal)*100).toFixed(1):'—';
+
+  container.innerHTML=`
+    <div class="sales-summary">
+      <div class="sales-card">
+        <div class="sales-card-lbl">売上</div>
+        <div class="sales-card-val">¥${total.toLocaleString()}</div>
+        <div class="sales-card-sub">${periodLabel}</div>
+      </div>
+      <div class="sales-card">
+        <div class="sales-card-lbl">売上前年同期</div>
+        <div class="sales-card-val">¥${prevTotal.toLocaleString()}</div>
+        <div class="sales-card-sub">${periodLabel} (前年)</div>
+      </div>
+      <div class="sales-card">
+        <div class="sales-card-lbl">売上前年比</div>
+        <div class="sales-card-val ${ratio!=='—'&&parseFloat(ratio)>=100?'sales-card-up':'sales-card-down'}">${ratio!=='—'?ratio+'%':ratio}</div>
+        <div class="sales-card-sub">前年比</div>
+      </div>
+    </div>
+    <div class="chart-section">
+      <div class="chart-title">売上推移</div>
+      <div class="chart-wrap"><canvas id="sales-chart"></canvas></div>
+    </div>
+    <div class="card" style="margin:8px 12px;">
+      <div class="card-header">売上明細</div>
+      <div id="sales-detail-list"></div>
+    </div>
+  `;
+
+  renderSalesDetail(filtered);
+  renderSalesChart(filtered);
+}
+
+function renderSalesDetail(data){
+  const list=document.getElementById('sales-detail-list');
+  if(!data.length){list.innerHTML='<div class="empty-state" style="padding:24px;"><p>売上記録がありません</p></div>';return;}
+  list.innerHTML=data.sort((a,b)=>b.date.localeCompare(a.date)).map(s=>`
+    <div class="list-row">
+      <div>
+        <div class="list-row-name">${s.item||'未設定'}</div>
+        <div class="list-row-sub">${s.date}${s.dest?' | '+s.dest:''}${s.qty?' | '+s.qty+'kg':''}</div>
+      </div>
+      <div class="list-row-right">
+        <span style="font-weight:700;">¥${parseInt(s.amount||0).toLocaleString()}</span>
+        <button onclick="delSales(${s.id})" style="background:none;border:none;color:var(--gray);cursor:pointer;padding:4px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderSalesChart(data){
+  const canvas=document.getElementById('sales-chart');
+  if(!canvas)return;
+  if(salesChart){salesChart.destroy();salesChart=null;}
+  if(!data.length){canvas.parentElement.innerHTML='<div class="no-results"><p>データがありません</p></div>';return;}
+
+  const byDate={};
+  data.forEach(s=>{byDate[s.date]=(byDate[s.date]||0)+(parseInt(s.amount)||0);});
+  const labels=Object.keys(byDate).sort().slice(-12);
+  const vals=labels.map(l=>byDate[l]);
+
+  salesChart=new Chart(canvas,{
+    type:'bar',
+    data:{labels,datasets:[{label:'売上 (円)',data:vals,backgroundColor:'rgba(46,125,50,.7)',borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'¥'+v.toLocaleString()}}}}
+  });
+}
+
+function setSalesPeriod(period,el){
+  salesPeriod=period;
+  document.querySelectorAll('.sub-nav .sub-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderSalesPage();
+}
+
+async function delSales(id){
+  await dbDel('sales',id);
+  salesData=await dbGet('sales');
+  renderSalesPage();
+  showToast('削除しました');
+}
+
+function openSalesModal(){
+  document.getElementById('sales-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('sales-item').value='';
+  document.getElementById('sales-amount').value='';
+  document.getElementById('sales-qty').value='';
+  document.getElementById('sales-dest').value='';
+  document.getElementById('sales-modal-overlay').classList.remove('hidden');
+}
+function closeSalesModal(){document.getElementById('sales-modal-overlay').classList.add('hidden');}
+
+async function saveSales(){
+  const amount=document.getElementById('sales-amount').value;
+  if(!amount){showToast('売上金額を入力してください');return;}
+  await dbAdd('sales',{
+    date:document.getElementById('sales-date').value||new Date().toISOString().slice(0,10),
+    item:document.getElementById('sales-item').value,
+    amount:parseInt(amount)||0,
+    qty:document.getElementById('sales-qty').value,
+    dest:document.getElementById('sales-dest').value,
+    createdAt:new Date().toISOString()
+  });
+  closeSalesModal();
+  renderSalesPage();
+  showToast('売上を記録しました');
+}
+
+// =============================================
+// その他
+// =============================================
+function changeFontSize(delta){
+  const root=document.documentElement;
+  const current=parseInt(getComputedStyle(root).getPropertyValue('--fs'))||16;
+  const next=Math.min(20,Math.max(12,current+delta));
+  root.style.setProperty('--fs',next+'px');
+  document.getElementById('font-size-label').textContent=`${next<=13?'小':next<=16?'普通':next<=18?'大':'最大'} (${next}px)`;
+  localStorage.setItem('fontSize',next);
+  showToast(`文字サイズ: ${next}px`);
+}
+
+async function showCropList(){
+  const f=await dbGet('fields');
+  document.getElementById('crop-list-sub').textContent=f.length?f.map(x=>x.crop||x.name).filter(Boolean).join('、'):'まずは作付けを登録!';
+  showToast(f.length?`${f.length}件の圃場があります`:'まずは作付け地図に圃場を追加してください');
+}
+
+function showFieldTemplates(){
+  showToast('圃場テンプレート: 大規模農園向けはv2で実装予定');
+}
+
+function showMyPesticides(){
+  showToast('持っている農薬: 農薬検索から追加機能はv2で実装予定');
+}
+
+async function exportCSV(){
+  const entries=await dbGet('diary');
+  const f=await dbGet('fields');
+  const fieldMap=Object.fromEntries(f.map(x=>[x.id,x.name]));
+  if(!entries.length){showToast('エクスポートするデータがありません');return;}
+  const header='日付,圃場,作業種別,作業名,作業者,時間(h),気温(°C),降水量(mm),収穫制限日数,メモ';
+  const rows=entries.map(e=>[e.date,fieldMap[e.fieldId]||'',e.workType,e.workName||'',e.worker||'',e.hours||'',e.temp||'',e.rain||'',e.harvestDays||0,(e.memo||'').replace(/,/g,'、')].join(','));
+  const csv='\uFEFF'+[header,...rows].join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='agrihub_diary_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  showToast('CSVをダウンロードしました');
+}
+
+function showSprayMgmt(){switchPage('diary');}
+function showAbout(){showInfoModal();}
+
+// =============================================
+// INFO MODAL
+// =============================================
+function showInfoModal(){document.getElementById('info-modal-overlay').classList.remove('hidden');}
+function closeInfoModal(){document.getElementById('info-modal-overlay').classList.add('hidden');}
+
+// Click outside to close modals
+document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.add('hidden');});
+});
+
+// =============================================
+// TOAST
+// =============================================
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// =============================================
+// INIT
+// =============================================
+async function init(){
+  // Restore font size
+  const savedFs=localStorage.getItem('fontSize');
+  if(savedFs){
+    document.documentElement.style.setProperty('--fs',savedFs+'px');
+    const lbl=document.getElementById('font-size-label');
+    if(lbl)lbl.textContent=`${parseInt(savedFs)<=13?'小':parseInt(savedFs)<=16?'普通':parseInt(savedFs)<=18?'大':'最大'} (${savedFs}px)`;
+  }
+  await initDB();
+  // Default page
+  switchPage('search');
+  // Show all pesticides hint
+  document.getElementById('pesticide-list').innerHTML='';
+}
+
+init();
+</script>
+</body>
+</html>
