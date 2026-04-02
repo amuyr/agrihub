@@ -1,0 +1,14 @@
+{
+  "name": "AgriHub - 農業管理アプリ",
+  "short_name": "AgriHub",
+  "description": "農薬検索・農業日誌・圃場管理・売上管理をオフラインで",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2e7d32",
+  "orientation": "portrait",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
